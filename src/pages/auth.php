@@ -1,7 +1,11 @@
 
 <?php
+session_start();
 
 require_once __DIR__ . '/../vendor/validate.php';
+require_once __DIR__ . '/../vendor/helpers.php';
+require_once __DIR__ . '/../config.php';
+
 
 $allErrors = "";
 $sucsess = "";
@@ -10,8 +14,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $errors = [];
 
-    $email = $_POST["email"];
-    $password = $_POST["password"];
+    $email = getProcessedRowInForm("email");
+    $password = getProcessedRowInForm("password");
 
 
 
@@ -24,11 +28,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
 
-    if (empty($errors)) {
-        $sucsess = "<div class='alert alert-success w-25 offset-4' role='alert'>
-                      You sucsess registration
-                    </div>";
-        // Process the form data
+    if (empty($errors) || !empty($email) || !empty($password)) {
+        $password = password_hash($password, PASSWORD_DEFAULT);
+        $sql = "INSERT INTO `users` (`email`, `password`) VALUES ('$email', '$password')";
+
+        if (mysqli_query($conn, $sql)) {
+            flash("You Register");
+            pushSessionAuth("auth", "true");
+            redirectToPage("/feedback");
+        } else {
+            echo "Something went wrong. Please try again later.";
+        }
+        mysqli_close($conn);
+
+
     } else {
         foreach ($errors as $error) {
             $allErrors .= "<div class='alert alert-danger w-25 offset-4 mt-1' role='alert'>{$error}</div>";
@@ -49,14 +62,11 @@ $contentAuth = "<div class='row'>" . $sucsess .
     <label for='exampleInputPassword1' class='form-label'>Password</label>
     <input type='password' name='password' class='form-control' id='exampleInputPassword1'>
   </div>
-  <div class='mb-3 form-check'>
-    <input type='checkbox' name='checkbox' class='form-check-input' id='exampleCheck1'>
-    <label class='form-check-label' for='exampleCheck1'>Check me out</label>
-  </div>
   <button type='submit' class='btn btn-primary w-100'>Submit</button>
 </form>" . $allErrors .
 
 "</div>";
+
 
 
 

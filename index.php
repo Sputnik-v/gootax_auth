@@ -1,12 +1,18 @@
 <?php
-    require_once "src/pages/auth.php";
-    require_once "src/pages/feedback.php";
+session_start();
 
     require_once "src/components/footer.php";
     require_once "src/components/header.php";
     require_once "src/vendor/helpers.php";
 
     $request = $_SERVER['REQUEST_URI'];
+
+    if($request === '/'){
+        require_once "src/pages/auth.php";
+    }
+    elseif ($request === '/feedback'){
+        require_once "src/pages/feedback.php";
+    }
 
 ?>
 
@@ -31,8 +37,8 @@
         <div class="container mt-5">
             <?php
                 echo match ($request) {
-                    '/' => (!empty($contentAuth) ? $contentAuth : 'Что то пошло не так'),
-                    '/feedback' => (!empty($contentRegister) ? $contentRegister : 'Что то пошло не так'),
+                    '/' => checkSessionAuth() ? redirectToPage("/feedback") : (!empty($contentAuth) ? $contentAuth : 'Что то пошло не так'),
+                    '/feedback' =>checkSessionAuth() ? (!empty($contentRegister) ? $contentRegister : 'Что то пошло не так') : redirectToPage("/"),
                     default => '404',
                 };
              ?>
@@ -43,6 +49,7 @@
     </footer>
 </div>
 
+<script src="src/assets/bootstrap/popper.min.js"></script>
 <script src="src/js/script.js"></script>
 <script src="src/assets/bootstrap/bootstrap.min.js"></script>
 </body>
